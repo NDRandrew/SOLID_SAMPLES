@@ -1,155 +1,12 @@
-Agora entendi o problema! O erro "Not found" está acontecendo porque o **Router** está funcionando como um sistema de rotas, mas o **AuthController** está esperando arquivos físicos de view nas pastas `views/`.
+Agora entendo o problema! O AuthController está redirecionando para `/auth/login` que é uma rota do Router, mas essa rota está tentando carregar a view `auth/login.php` que está em `views/auth/login.php`. O sistema está misturando rotas com views físicas.
 
-O problema é uma **desconexão entre o sistema de rotas do Router e a estrutura de arquivos de view**.
+O problema está na lógica do AuthController. Depois do login bem-sucedido, ele está redirecionando para uma rota em vez de renderizar a view correta ou redirecionar para a rota correta.
 
-## Aqui estão as correções necessárias:
+## Aqui está a correção completa:
 
-### 1. Verificar se você executou o setup
+### 1. Corrigir o AuthController
 
-Primeiro, acesse `/teste/Andre/Crud/setup.php` para criar os dados iniciais e verificar se tudo está funcionando.
-
-### 2. O AuthController precisa renderizar a view corretamente
-
-O problema está no método `render()` do `BaseController`. Ele está tentando incluir arquivos que podem não existir. Vamos corrigir:
-
-**No `controllers/AuthController.php`, modifique o método `login()`:**
-
-```php
-public function login() {
-    if (Session::isLoggedIn()) {
-        $this->redirect('/dashboard');
-        return;
-    }
-    
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $email = trim($_POST['email'] ?? '');
-        $password = $_POST['password'] ?? '';
-        
-        if (empty($email) || empty($password)) {
-            $error = 'Por favor, preencha todos os campos';
-            $this->render('auth/login', compact('error'));
-            return;
-        }
-        
-        $user = $this->userModel->authenticate($email, $password);
-        
-        if ($user) {
-            Session::set('user_id', $user['id']);
-            Session::set('user_name', $user['name']);
-            Session::set('user_role', $user['role']);
-            $this->redirect('/dashboard');
-            return;
-        } else {
-            $error = 'E-mail ou senha inválidos';
-            $this->render('auth/login', compact('error'));
-            return;
-        }
-    } else {
-        $this->render('auth/login');
-    }
-}
-```
-
-### 3. Criar a estrutura básica de views
-
-Você precisa criar estes arquivos:
-
-**`views/layout/header.php`:**
-```php
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema MVC</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-```
-
-**`views/layout/footer.php`:**
-```php
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-```
-
-**`views/auth/login.php`:**
-```php
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Login</h4>
-                </div>
-                <div class="card-body">
-                    <?php if (isset($error)): ?>
-                        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-                    <?php endif; ?>
-                    
-                    <form method="POST">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">E-mail</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Senha</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Entrar</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-```
-
-**`views/dashboard/index.php`:**
-```php
-<div class="container mt-4">
-    <h2>Dashboard</h2>
-    <p>Bem-vindo, <?= htmlspecialchars(Session::get('user_name', 'Usuário')) ?>!</p>
-    
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5>Gerenciar Usuários</h5>
-                    <p>Administre os usuários do sistema</p>
-                    <a href="<?= $basePath ?>/dashboard/users" class="btn btn-primary">Ver Usuários</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5>Tarefas Kanban</h5>
-                    <p>Gerencie suas tarefas</p>
-                    <a href="<?= $basePath ?>/tasks/kanban" class="btn btn-success">Ver Kanban</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="mt-3">
-        <a href="<?= $basePath ?>/auth/logout" class="btn btn-danger">Logout</a>
-    </div>
-</div>
-```
-
-### 4. Passos para fazer funcionar:
-
-1. **Execute o setup:** `/teste/Andre/Crud/setup.php`
-2. **Crie os arquivos de view** listados acima
-3. **Teste o login** com: 
-   - Email: `admin@example.com`
-   - Senha: `password`
-
-### 5. Se ainda não funcionar, teste este código temporário
-
-Substitua temporariamente o conteúdo do `controllers/AuthController.php` por este código simples:
+Substitua o arquivo `controllers/AuthController.php` por este código corrigido:
 
 ```php
 <?php
@@ -162,28 +19,41 @@ class AuthController extends BaseController {
     }
     
     public function login() {
-        // Teste básico sem views
+        // Se já está logado, redireciona para dashboard
+        if (Session::isLoggedIn()) {
+            $this->redirect('/dashboard');
+            return;
+        }
+        
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email = $_POST['email'] ?? '';
+            $email = trim($_POST['email'] ?? '');
             $password = $_POST['password'] ?? '';
             
-            if ($email === 'admin@example.com' && $password === 'password') {
-                Session::set('user_id', 1);
-                Session::set('user_name', 'Admin');
-                Session::set('user_role', 'admin');
+            if (empty($email) || empty($password)) {
+                $error = 'Por favor, preencha todos os campos';
+                $this->render('auth/login', compact('error'));
+                return;
+            }
+            
+            $user = $this->userModel->authenticate($email, $password);
+            
+            if ($user) {
+                Session::set('user_id', $user['id']);
+                Session::set('user_name', $user['name']);
+                Session::set('user_role', $user['role']);
                 
-                echo "Login bem-sucedido! <a href='{$this->basePath}/dashboard'>Ir para Dashboard</a>";
+                // CORREÇÃO: Redirecionar para /dashboard, não /auth/login
+                $this->redirect('/dashboard');
                 return;
             } else {
-                echo "Credenciais inválidas!";
+                $error = 'E-mail ou senha inválidos';
+                $this->render('auth/login', compact('error'));
+                return;
             }
         }
         
-        echo '<form method="POST">
-                <input type="email" name="email" placeholder="admin@example.com" required><br><br>
-                <input type="password" name="password" placeholder="password" required><br><br>
-                <button type="submit">Login</button>
-              </form>';
+        // GET request - mostrar formulário de login
+        $this->render('auth/login');
     }
     
     public function logout() {
@@ -194,4 +64,111 @@ class AuthController extends BaseController {
 ?>
 ```
 
-Qual dessas opções você quer tentar primeiro? Execute o setup e me diga o que acontece!
+### 2. Verificar o método render() no BaseController
+
+Certifique-se de que o método `render()` no `controllers/BaseController.php` está assim:
+
+```php
+protected function render($view, $data = []) {
+    if (ob_get_level()) {
+        ob_clean();
+    }
+    
+    extract($data);
+    $basePath = $this->basePath;
+    
+    // Verificar se o arquivo de view existe
+    $viewFile = "views/{$view}.php";
+    if (!file_exists($viewFile)) {
+        echo "Erro: View não encontrada - {$viewFile}";
+        return;
+    }
+    
+    ob_start();
+    include $viewFile;
+    $content = ob_get_clean();
+    
+    // Incluir header se existir
+    if (file_exists('views/layout/header.php')) {
+        include 'views/layout/header.php';
+    }
+    
+    echo $content;
+    
+    // Incluir footer se existir
+    if (file_exists('views/layout/footer.php')) {
+        include 'views/layout/footer.php';
+    }
+}
+```
+
+### 3. Verificar a estrutura de arquivos
+
+Confirme que você tem estes arquivos:
+
+```
+Crud/
+├── views/
+│   ├── layout/
+│   │   ├── header.php
+│   │   └── footer.php
+│   ├── auth/
+│   │   └── login.php
+│   └── dashboard/
+│       └── index.php
+```
+
+### 4. Testar o fluxo
+
+1. **Limpe o cache/sessão** novamente
+2. **Acesse** `/teste/Andre/Crud/`
+3. **Faça login** com:
+   - Email: `admin@example.com`  
+   - Senha: `password`
+4. **Deve redirecionar** para `/teste/Andre/Crud/dashboard`
+
+### 5. Se ainda não funcionar, teste este debug
+
+Temporariamente, substitua o método `login()` no AuthController por este para debug:
+
+```php
+public function login() {
+    echo "<h3>DEBUG AuthController::login()</h3>";
+    echo "Método: " . $_SERVER['REQUEST_METHOD'] . "<br>";
+    echo "Logado: " . (Session::isLoggedIn() ? 'SIM' : 'NÃO') . "<br>";
+    
+    if (Session::isLoggedIn()) {
+        echo "Redirecionando para dashboard...<br>";
+        echo "URL: " . $this->basePath . "/dashboard<br>";
+        echo "<a href='{$this->basePath}/dashboard'>Ir manualmente</a><br>";
+        // $this->redirect('/dashboard'); // Descomente depois
+        return;
+    }
+    
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        
+        echo "Email: {$email}<br>";
+        echo "Password: " . (empty($password) ? 'vazio' : 'preenchido') . "<br>";
+        
+        $user = $this->userModel->authenticate($email, $password);
+        
+        if ($user) {
+            echo "Autenticação OK!<br>";
+            Session::set('user_id', $user['id']);
+            Session::set('user_name', $user['name']);
+            Session::set('user_role', $user['role']);
+            echo "Sessão criada. <a href='{$this->basePath}/dashboard'>Ir para dashboard</a><br>";
+            return;
+        } else {
+            echo "Falha na autenticação<br>";
+        }
+    }
+    
+    echo "Renderizando view de login...<br>";
+    $this->render('auth/login');
+}
+```
+
+Execute esse debug e me diga o que aparece. Isso vai nos mostrar exatamente onde está o problema no fluxo de redirecionamento.
