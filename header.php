@@ -1,90 +1,197 @@
-O problema é que o redirecionamento está indo para uma URL que não existe como rota. Vamos debugar isso passo a passo.
+Agora entendi o problema! O erro "Not found" está acontecendo porque o **Router** está funcionando como um sistema de rotas, mas o **AuthController** está esperando arquivos físicos de view nas pastas `views/`.
 
-O erro indica que `/teste/Andre/Crud/auth/login` não é uma rota válida. Vamos fazer alguns testes diagnósticos:
+O problema é uma **desconexão entre o sistema de rotas do Router e a estrutura de arquivos de view**.
 
-## 1. Primeiro, teste este código no seu AuthController
+## Aqui estão as correções necessárias:
 
-Substitua temporariamente o método `login()` no `controllers/AuthController.php` por este código de debug:
+### 1. Verificar se você executou o setup
+
+Primeiro, acesse `/teste/Andre/Crud/setup.php` para criar os dados iniciais e verificar se tudo está funcionando.
+
+### 2. O AuthController precisa renderizar a view corretamente
+
+O problema está no método `render()` do `BaseController`. Ele está tentando incluir arquivos que podem não existir. Vamos corrigir:
+
+**No `controllers/AuthController.php`, modifique o método `login()`:**
 
 ```php
 public function login() {
-    echo "<h3>Debug do AuthController</h3>";
-    echo "REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD'] . "<br>";
-    echo "SESSION loggedIn: " . (Session::isLoggedIn() ? 'SIM' : 'NÃO') . "<br>";
-    echo "BasePath: " . $this->basePath . "<br>";
-    
     if (Session::isLoggedIn()) {
-        echo "Usuário já logado, tentando redirecionar para dashboard...<br>";
-        echo "URL de redirecionamento: " . $this->basePath . "/dashboard<br>";
-        // Não fazer redirect ainda, só mostrar info
+        $this->redirect('/dashboard');
         return;
     }
     
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        echo "Processando POST...<br>";
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
         
-        echo "Email: " . $email . "<br>";
-        
         if (empty($email) || empty($password)) {
-            echo "Campos vazios<br>";
+            $error = 'Por favor, preencha todos os campos';
+            $this->render('auth/login', compact('error'));
             return;
         }
         
         $user = $this->userModel->authenticate($email, $password);
         
         if ($user) {
-            echo "Autenticação bem-sucedida!<br>";
-            echo "User ID: " . $user['id'] . "<br>";
-            echo "User Name: " . $user['name'] . "<br>";
-            
             Session::set('user_id', $user['id']);
             Session::set('user_name', $user['name']);
             Session::set('user_role', $user['role']);
-            
-            echo "Sessão configurada.<br>";
-            echo "Tentando redirecionar para: " . $this->basePath . "/dashboard<br>";
-            // Não fazer redirect ainda
+            $this->redirect('/dashboard');
             return;
         } else {
-            echo "Falha na autenticação<br>";
+            $error = 'E-mail ou senha inválidos';
+            $this->render('auth/login', compact('error'));
             return;
         }
     } else {
-        echo "Mostrando formulário de login...<br>";
-        // Mostrar um formulário básico aqui
-        echo '<form method="POST">
-                <input type="email" name="email" placeholder="email" required><br><br>
-                <input type="password" name="password" placeholder="senha" required><br><br>
-                <button type="submit">Login</button>
-              </form>';
+        $this->render('auth/login');
     }
 }
 ```
 
-## 2. Teste com credenciais padrão
+### 3. Criar a estrutura básica de views
 
-Use essas credenciais para testar:
-- **Email:** `admin@example.com`
-- **Senha:** `password`
+Você precisa criar estes arquivos:
 
-## 3. Verifique se o setup foi executado
+**`views/layout/header.php`:**
+```php
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema MVC</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+```
 
-Acesse primeiro `/teste/Andre/Crud/setup.php` para garantir que o sistema foi inicializado corretamente.
+**`views/layout/footer.php`:**
+```php
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+```
 
-## 4. Teste as rotas disponíveis
+**`views/auth/login.php`:**
+```php
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Login</h4>
+                </div>
+                <div class="card-body">
+                    <?php if (isset($error)): ?>
+                        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+                    <?php endif; ?>
+                    
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">E-mail</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Senha</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Entrar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+```
 
-Acesse diretamente:
-- `/teste/Andre/Crud/dashboard` (sem fazer login primeiro)
+**`views/dashboard/index.php`:**
+```php
+<div class="container mt-4">
+    <h2>Dashboard</h2>
+    <p>Bem-vindo, <?= htmlspecialchars(Session::get('user_name', 'Usuário')) ?>!</p>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Gerenciar Usuários</h5>
+                    <p>Administre os usuários do sistema</p>
+                    <a href="<?= $basePath ?>/dashboard/users" class="btn btn-primary">Ver Usuários</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Tarefas Kanban</h5>
+                    <p>Gerencie suas tarefas</p>
+                    <a href="<?= $basePath ?>/tasks/kanban" class="btn btn-success">Ver Kanban</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a href="<?= $basePath ?>/auth/logout" class="btn btn-danger">Logout</a>
+    </div>
+</div>
+```
 
-Isso deve mostrar se a rota existe e como o sistema se comporta.
+### 4. Passos para fazer funcionar:
 
-Execute esses testes e me diga:
+1. **Execute o setup:** `/teste/Andre/Crud/setup.php`
+2. **Crie os arquivos de view** listados acima
+3. **Teste o login** com: 
+   - Email: `admin@example.com`
+   - Senha: `password`
 
-1. O que aparece quando você acessa `/teste/Andre/Crud/index.php`?
-2. O que acontece quando você tenta fazer login?
-3. O setup foi executado? Se não, execute primeiro.
-4. O que acontece quando acessa `/teste/Andre/Crud/dashboard` diretamente?
+### 5. Se ainda não funcionar, teste este código temporário
 
-Com essas informações conseguiremos identificar exatamente onde está o problema no fluxo de redirecionamento.
+Substitua temporariamente o conteúdo do `controllers/AuthController.php` por este código simples:
+
+```php
+<?php
+class AuthController extends BaseController {
+    private $userModel;
+    
+    public function __construct() {
+        parent::__construct();
+        $this->userModel = new User();
+    }
+    
+    public function login() {
+        // Teste básico sem views
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $email = $_POST['email'] ?? '';
+            $password = $_POST['password'] ?? '';
+            
+            if ($email === 'admin@example.com' && $password === 'password') {
+                Session::set('user_id', 1);
+                Session::set('user_name', 'Admin');
+                Session::set('user_role', 'admin');
+                
+                echo "Login bem-sucedido! <a href='{$this->basePath}/dashboard'>Ir para Dashboard</a>";
+                return;
+            } else {
+                echo "Credenciais inválidas!";
+            }
+        }
+        
+        echo '<form method="POST">
+                <input type="email" name="email" placeholder="admin@example.com" required><br><br>
+                <input type="password" name="password" placeholder="password" required><br><br>
+                <button type="submit">Login</button>
+              </form>';
+    }
+    
+    public function logout() {
+        Session::destroy();
+        $this->redirect('/auth/login');
+    }
+}
+?>
+```
+
+Qual dessas opções você quer tentar primeiro? Execute o setup e me diga o que acontece!
