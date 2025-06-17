@@ -1,4 +1,4 @@
-Vamos debugar passo a passo. O problema pode ser que os arquivos não existem ou há outros erros. Teste este código para diagnóstico:
+Perfeito! Todos os arquivos existem. Agora vamos testar incluir um arquivo por vez para ver onde está o problema:
 
 ```php
 <?php
@@ -6,40 +6,59 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 session_start();
 
-echo "Index iniciado!<br>";
-echo "Diretório atual: " . __DIR__ . "<br><br>";
+echo "Testando includes...<br>";
 
-// Teste cada arquivo individualmente
-$files = [
-    'core/JsonDatabase.php',
-    'core/Session.php', 
-    'core/Router.php',
-    'models/User.php',
-    'models/Task.php',
-    'controllers/BaseController.php',
-    'controllers/AuthController.php',
-    'controllers/DashboardController.php',
-    'controllers/TaskController.php'
-];
-
-foreach($files as $file) {
-    $fullPath = __DIR__ . '/' . $file;
-    if(file_exists($fullPath)) {
-        echo "✅ Arquivo existe: $file<br>";
-    } else {
-        echo "❌ Arquivo NÃO existe: $file<br>";
-        echo "Caminho completo: $fullPath<br>";
-    }
+try {
+    echo "1. Incluindo JsonDatabase.php...<br>";
+    require_once __DIR__ . '/core/JsonDatabase.php';
+    echo "JsonDatabase.php incluído com sucesso!<br>";
+    
+    echo "2. Incluindo Session.php...<br>";
+    require_once __DIR__ . '/core/Session.php';
+    echo "Session.php incluído com sucesso!<br>";
+    
+    echo "3. Incluindo Router.php...<br>";
+    require_once __DIR__ . '/core/Router.php';
+    echo "Router.php incluído com sucesso!<br>";
+    
+    echo "4. Incluindo User.php...<br>";
+    require_once __DIR__ . '/models/User.php';
+    echo "User.php incluído com sucesso!<br>";
+    
+    echo "5. Incluindo Task.php...<br>";
+    require_once __DIR__ . '/models/Task.php';
+    echo "Task.php incluído com sucesso!<br>";
+    
+    echo "6. Incluindo BaseController.php...<br>";
+    require_once __DIR__ . '/controllers/BaseController.php';
+    echo "BaseController.php incluído com sucesso!<br>";
+    
+    echo "7. Incluindo AuthController.php...<br>";
+    require_once __DIR__ . '/controllers/AuthController.php';
+    echo "AuthController.php incluído com sucesso!<br>";
+    
+    echo "8. Incluindo DashboardController.php...<br>";
+    require_once __DIR__ . '/controllers/DashboardController.php';
+    echo "DashboardController.php incluído com sucesso!<br>";
+    
+    echo "9. Incluindo TaskController.php...<br>";
+    require_once __DIR__ . '/controllers/TaskController.php';
+    echo "TaskController.php incluído com sucesso!<br>";
+    
+    echo "<br>Todos os arquivos incluídos! Agora testando o Router...<br>";
+    
+    $router = new Router();
+    echo "Router criado com sucesso!<br>";
+    
+    echo "Chamando handleRequest()...<br>";
+    $router->handleRequest();
+    
+} catch (Exception $e) {
+    echo "ERRO: " . $e->getMessage() . "<br>";
+    echo "Arquivo: " . $e->getFile() . "<br>";
+    echo "Linha: " . $e->getLine() . "<br>";
 }
-
-echo "<br>Fim do teste";
 ?>
 ```
 
-Substitua temporariamente todo o conteúdo do `index.php` por esse código de teste. Ele vai:
-
-1. Mostrar se há erros PHP
-2. Mostrar o diretório atual 
-3. Verificar se cada arquivo existe antes de tentar incluí-lo
-
-Execute isso e me diga o que aparece na tela. Assim saberemos exatamente quais arquivos estão faltando e qual é o caminho real que está sendo usado.
+Esse código vai mostrar exatamente onde o erro acontece. Execute e me diga em qual etapa para de funcionar ou que erro aparece.
