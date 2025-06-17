@@ -1,12 +1,25 @@
-Agora entendo o problema! O AuthController está redirecionando para `/auth/login` que é uma rota do Router, mas essa rota está tentando carregar a view `auth/login.php` que está em `views/auth/login.php`. O sistema está misturando rotas com views físicas.
+Analisando o documento completo e o problema que você está enfrentando, encontrei exatamente onde está o erro!
 
-O problema está na lógica do AuthController. Depois do login bem-sucedido, ele está redirecionando para uma rota em vez de renderizar a view correta ou redirecionar para a rota correta.
+## O PROBLEMA ESTÁ NO AuthController.php
 
-## Aqui está a correção completa:
+Comparando o código do documento com o que está acontecendo, o problema é que após o login bem-sucedido, o AuthController está redirecionando ERRADO.
 
-### 1. Corrigir o AuthController
+**No código correto do documento (seção 5.2), após autenticação bem-sucedida:**
+```php
+if ($user) {
+    Session::set('user_id', $user['id']);
+    Session::set('user_name', $user['name']);
+    Session::set('user_role', $user['role']);
+    $this->redirect('/dashboard');  // ← CORRETO: redireciona para /dashboard
+    return;
+}
+```
 
-Substitua o arquivo `controllers/AuthController.php` por este código corrigido:
+**Mas o seu sistema está redirecionando para `/auth/login` ao invés de `/dashboard`.**
+
+## CORREÇÕES NECESSÁRIAS:
+
+### 1. Substituir completamente o `controllers/AuthController.php`:
 
 ```php
 <?php
@@ -19,7 +32,10 @@ class AuthController extends BaseController {
     }
     
     public function login() {
-        // Se já está logado, redireciona para dashboard
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
         if (Session::isLoggedIn()) {
             $this->redirect('/dashboard');
             return;
@@ -41,19 +57,16 @@ class AuthController extends BaseController {
                 Session::set('user_id', $user['id']);
                 Session::set('user_name', $user['name']);
                 Session::set('user_role', $user['role']);
-                
-                // CORREÇÃO: Redirecionar para /dashboard, não /auth/login
-                $this->redirect('/dashboard');
+                $this->redirect('/dashboard');  // ← ESTA É A LINHA CRÍTICA
                 return;
             } else {
                 $error = 'E-mail ou senha inválidos';
                 $this->render('auth/login', compact('error'));
                 return;
             }
+        } else {
+            $this->render('auth/login');
         }
-        
-        // GET request - mostrar formulário de login
-        $this->render('auth/login');
     }
     
     public function logout() {
@@ -64,111 +77,41 @@ class AuthController extends BaseController {
 ?>
 ```
 
-### 2. Verificar o método render() no BaseController
+### 2. Adicionar a rota 'index.php' no Router (se ainda não tiver):
 
-Certifique-se de que o método `render()` no `controllers/BaseController.php` está assim:
+No `core/Router.php`, no método `defineRoutes()`:
 
 ```php
-protected function render($view, $data = []) {
-    if (ob_get_level()) {
-        ob_clean();
-    }
-    
-    extract($data);
-    $basePath = $this->basePath;
-    
-    // Verificar se o arquivo de view existe
-    $viewFile = "views/{$view}.php";
-    if (!file_exists($viewFile)) {
-        echo "Erro: View não encontrada - {$viewFile}";
-        return;
-    }
-    
-    ob_start();
-    include $viewFile;
-    $content = ob_get_clean();
-    
-    // Incluir header se existir
-    if (file_exists('views/layout/header.php')) {
-        include 'views/layout/header.php';
-    }
-    
-    echo $content;
-    
-    // Incluir footer se existir
-    if (file_exists('views/layout/footer.php')) {
-        include 'views/layout/footer.php';
-    }
+private function defineRoutes() {
+    $this->routes = [
+        '' => ['controller' => 'AuthController', 'method' => 'login'],
+        'index.php' => ['controller' => 'AuthController', 'method' => 'login'], // ← Adicionar esta linha
+        'auth/login' => ['controller' => 'AuthController', 'method' => 'login'],
+        'auth/logout' => ['controller' => 'AuthController', 'method' => 'logout'],
+        'dashboard' => ['controller' => 'DashboardController', 'method' => 'index'],
+        // ... resto das rotas
+    ];
 }
 ```
 
-### 3. Verificar a estrutura de arquivos
+### 3. Verificar se você executou o `setup.php`:
 
-Confirme que você tem estes arquivos:
-
+Se ainda não executou, acesse:
 ```
-Crud/
-├── views/
-│   ├── layout/
-│   │   ├── header.php
-│   │   └── footer.php
-│   ├── auth/
-│   │   └── login.php
-│   └── dashboard/
-│       └── index.php
+/teste/Andre/Crud/setup.php
 ```
 
-### 4. Testar o fluxo
+### 4. Verificar se o arquivo `views/dashboard/index.php` existe
 
-1. **Limpe o cache/sessão** novamente
-2. **Acesse** `/teste/Andre/Crud/`
-3. **Faça login** com:
-   - Email: `admin@example.com`  
-   - Senha: `password`
-4. **Deve redirecionar** para `/teste/Andre/Crud/dashboard`
-
-### 5. Se ainda não funcionar, teste este debug
-
-Temporariamente, substitua o método `login()` no AuthController por este para debug:
-
-```php
-public function login() {
-    echo "<h3>DEBUG AuthController::login()</h3>";
-    echo "Método: " . $_SERVER['REQUEST_METHOD'] . "<br>";
-    echo "Logado: " . (Session::isLoggedIn() ? 'SIM' : 'NÃO') . "<br>";
-    
-    if (Session::isLoggedIn()) {
-        echo "Redirecionando para dashboard...<br>";
-        echo "URL: " . $this->basePath . "/dashboard<br>";
-        echo "<a href='{$this->basePath}/dashboard'>Ir manualmente</a><br>";
-        // $this->redirect('/dashboard'); // Descomente depois
-        return;
-    }
-    
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $email = trim($_POST['email'] ?? '');
-        $password = $_POST['password'] ?? '';
-        
-        echo "Email: {$email}<br>";
-        echo "Password: " . (empty($password) ? 'vazio' : 'preenchido') . "<br>";
-        
-        $user = $this->userModel->authenticate($email, $password);
-        
-        if ($user) {
-            echo "Autenticação OK!<br>";
-            Session::set('user_id', $user['id']);
-            Session::set('user_name', $user['name']);
-            Session::set('user_role', $user['role']);
-            echo "Sessão criada. <a href='{$this->basePath}/dashboard'>Ir para dashboard</a><br>";
-            return;
-        } else {
-            echo "Falha na autenticação<br>";
-        }
-    }
-    
-    echo "Renderizando view de login...<br>";
-    $this->render('auth/login');
-}
+O arquivo deve estar em:
+```
+Crud/views/dashboard/index.php
 ```
 
-Execute esse debug e me diga o que aparece. Isso vai nos mostrar exatamente onde está o problema no fluxo de redirecionamento.
+## RESUMO DO ERRO:
+
+O problema é que **em algum lugar do seu código AuthController está redirecionando para `/auth/login` após o login bem-sucedido, ao invés de redirecionar para `/dashboard`.**
+
+O código correto do documento redireciona para `/dashboard`, mas o seu está fazendo redirect para `/auth/login`.
+
+**Faça essas correções exatas e o sistema funcionará corretamente!**
