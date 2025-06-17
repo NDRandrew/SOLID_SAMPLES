@@ -3,79 +3,132 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="page-title">
-                    <i class="fas fa-tasks me-3 text-bradesco"></i>Quadro Kanban
+                    <i class="fas fa-users me-3 text-bradesco"></i>Gerenciamento de Usuários
                 </h1>
-                <button class="btn btn-bradesco pulse-bradesco" data-bs-toggle="modal" data-bs-target="#createTaskModal">
-                    <i class="fas fa-plus me-2"></i>Adicionar Tarefa
+                <button class="btn btn-bradesco pulse-bradesco" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                    <i class="fas fa-user-plus me-2"></i>Adicionar Novo Usuário
                 </button>
             </div>
         </div>
     </div>
     
     <div class="row">
-        <div class="col-lg-4">
-            <div class="kanban-column" data-status="todo">
-                <h5 class="text-center mb-3">
-                    <i class="fas fa-clipboard-list me-2 text-bradesco"></i>A Fazer
-                    <span class="badge bg-bradesco ms-2" id="todo-count">0</span>
-                </h5>
-                <div class="kanban-tasks" id="todo-tasks">
-                    <!-- Tarefas serão populadas pelo JavaScript -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Lista de Usuários
+                    </h5>
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4">
-            <div class="kanban-column" data-status="in_progress">
-                <h5 class="text-center mb-3">
-                    <i class="fas fa-spinner me-2 text-warning"></i>Em Progresso
-                    <span class="badge bg-warning ms-2" id="in_progress-count">0</span>
-                </h5>
-                <div class="kanban-tasks" id="in_progress-tasks">
-                    <!-- Tarefas serão populadas pelo JavaScript -->
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4">
-            <div class="kanban-column" data-status="done">
-                <h5 class="text-center mb-3">
-                    <i class="fas fa-check-circle me-2 text-success"></i>Concluído
-                    <span class="badge bg-success ms-2" id="done-count">0</span>
-                </h5>
-                <div class="kanban-tasks" id="done-tasks">
-                    <!-- Tarefas serão populadas pelo JavaScript -->
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th>E-mail</th>
+                                    <th>Função</th>
+                                    <th>Criado em</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($users as $user): ?>
+                                <tr>
+                                    <td><span class="badge bg-light text-dark"><?= $user['id'] ?></span></td>
+                                    <td>
+                                        <i class="fas fa-user-circle me-2 text-bradesco"></i>
+                                        <strong><?= htmlspecialchars($user['name']) ?></strong>
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-envelope me-1 text-muted"></i>
+                                        <?= htmlspecialchars($user['email']) ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge <?= $user['role'] === 'admin' ? 'bg-bradesco' : 'bg-secondary' ?>">
+                                            <i class="fas fa-<?= $user['role'] === 'admin' ? 'crown' : 'user' ?> me-1"></i>
+                                            <?= $user['role'] === 'admin' ? 'Administrador' : 'Usuário' ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-calendar me-1 text-muted"></i>
+                                        <?= date('d/m/Y', strtotime($user['created_at'])) ?>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="editUser(<?= htmlspecialchars(json_encode($user)) ?>)"
+                                                    data-bs-toggle="tooltip" title="Editar usuário">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <?php if ($user['id'] != Session::get('user_id')): ?>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="deleteUser(<?= $user['id'] ?>, '<?= htmlspecialchars($user['name']) ?>')"
+                                                    data-bs-toggle="tooltip" title="Excluir usuário">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            <?php else: ?>
+                                            <button class="btn btn-sm btn-outline-secondary" disabled
+                                                    data-bs-toggle="tooltip" title="Você não pode excluir sua própria conta">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Criar Tarefa -->
-<div class="modal fade" id="createTaskModal" tabindex="-1">
+<!-- Modal Criar Usuário -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-bradesco text-white">
                 <h5 class="modal-title">
-                    <i class="fas fa-plus me-2"></i>Criar Nova Tarefa
+                    <i class="fas fa-user-plus me-2"></i>Adicionar Novo Usuário
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="<?= isset($basePath) ? $basePath : '' ?>/tasks/create">
+            <form method="POST" action="<?= isset($basePath) ? $basePath : '' ?>/dashboard/user/create">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="taskTitle" class="form-label">
-                            <i class="fas fa-heading me-1 text-bradesco"></i>Título da Tarefa
+                        <label for="createName" class="form-label">
+                            <i class="fas fa-user me-1 text-bradesco"></i>Nome Completo
                         </label>
-                        <input type="text" class="form-control border-bradesco" id="taskTitle" name="title" 
-                               placeholder="Digite o título da tarefa..." required>
+                        <input type="text" class="form-control border-bradesco" id="createName" name="name" 
+                               placeholder="Digite o nome completo" required>
                     </div>
                     <div class="mb-3">
-                        <label for="taskDescription" class="form-label">
-                            <i class="fas fa-align-left me-1 text-bradesco"></i>Descrição
+                        <label for="createEmail" class="form-label">
+                            <i class="fas fa-envelope me-1 text-bradesco"></i>Endereço de E-mail
                         </label>
-                        <textarea class="form-control border-bradesco" id="taskDescription" name="description" 
-                                  rows="3" placeholder="Digite a descrição da tarefa..."></textarea>
+                        <input type="email" class="form-control border-bradesco" id="createEmail" name="email" 
+                               placeholder="Digite o e-mail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="createPassword" class="form-label">
+                            <i class="fas fa-lock me-1 text-bradesco"></i>Senha
+                        </label>
+                        <input type="password" class="form-control border-bradesco" id="createPassword" name="password" 
+                               placeholder="Digite a senha" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="createRole" class="form-label">
+                            <i class="fas fa-user-tag me-1 text-bradesco"></i>Função
+                        </label>
+                        <select class="form-select border-bradesco" id="createRole" name="role" required>
+                            <option value="">Selecione uma função</option>
+                            <option value="user">Usuário</option>
+                            <option value="admin">Administrador</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -83,7 +136,7 @@
                         <i class="fas fa-times me-1"></i>Cancelar
                     </button>
                     <button type="submit" class="btn btn-bradesco">
-                        <i class="fas fa-save me-2"></i>Criar Tarefa
+                        <i class="fas fa-save me-2"></i>Criar Usuário
                     </button>
                 </div>
             </form>
@@ -91,197 +144,126 @@
     </div>
 </div>
 
-<script>
-// JavaScript do Quadro Kanban
-document.addEventListener('DOMContentLoaded', function() {
-    const tasks = <?= json_encode($tasks) ?>;
-    
-    // Inicializar o quadro kanban
-    initializeKanban(tasks);
-    
-    // Configurar drag and drop
-    setupDragAndDrop();
-});
-
-function initializeKanban(tasks) {
-    // Limpar tarefas existentes
-    document.getElementById('todo-tasks').innerHTML = '';
-    document.getElementById('in_progress-tasks').innerHTML = '';
-    document.getElementById('done-tasks').innerHTML = '';
-    
-    // Agrupar tarefas por status
-    const tasksByStatus = {
-        todo: [],
-        in_progress: [],
-        done: []
-    };
-    
-    tasks.forEach(task => {
-        tasksByStatus[task.status].push(task);
-    });
-    
-    // Renderizar tarefas em cada coluna
-    Object.keys(tasksByStatus).forEach(status => {
-        const container = document.getElementById(status + '-tasks');
-        const tasks = tasksByStatus[status];
-        
-        tasks.forEach(task => {
-            container.appendChild(createTaskElement(task));
-        });
-        
-        // Atualizar contadores
-        document.getElementById(status + '-count').textContent = tasks.length;
-    });
-}
-
-function createTaskElement(task) {
-    const taskDiv = document.createElement('div');
-    taskDiv.className = 'kanban-card';
-    taskDiv.draggable = true;
-    taskDiv.dataset.taskId = task.id;
-    
-    // Formatear data para formato brasileiro
-    const taskDate = new Date(task.created_at);
-    const formattedDate = taskDate.toLocaleDateString('pt-BR');
-    
-    taskDiv.innerHTML = `
-        <div class="d-flex justify-content-between align-items-start mb-2">
-            <h6 class="mb-0 text-dark fw-semibold">${escapeHtml(task.title)}</h6>
-            <small class="text-muted">#${task.id}</small>
+<!-- Modal Editar Usuário -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-bradesco text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-edit me-2"></i>Editar Usuário
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="<?= isset($basePath) ? $basePath : '' ?>/dashboard/user/edit">
+                <div class="modal-body">
+                    <input type="hidden" id="editId" name="id">
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">
+                            <i class="fas fa-user me-1 text-bradesco"></i>Nome Completo
+                        </label>
+                        <input type="text" class="form-control border-bradesco" id="editName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editEmail" class="form-label">
+                            <i class="fas fa-envelope me-1 text-bradesco"></i>Endereço de E-mail
+                        </label>
+                        <input type="email" class="form-control border-bradesco" id="editEmail" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPassword" class="form-label">
+                            <i class="fas fa-lock me-1 text-bradesco"></i>Nova Senha 
+                            <small class="text-muted">(deixe em branco para manter a atual)</small>
+                        </label>
+                        <input type="password" class="form-control border-bradesco" id="editPassword" name="password"
+                               placeholder="Digite nova senha ou deixe em branco">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRole" class="form-label">
+                            <i class="fas fa-user-tag me-1 text-bradesco"></i>Função
+                        </label>
+                        <select class="form-select border-bradesco" id="editRole" name="role" required>
+                            <option value="user">Usuário</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-bradesco">
+                        <i class="fas fa-save me-2"></i>Atualizar Usuário
+                    </button>
+                </div>
+            </form>
         </div>
-        ${task.description ? `<p class="small text-muted mb-2">${escapeHtml(task.description)}</p>` : ''}
-        <div class="d-flex justify-content-between align-items-center">
-            <small class="text-muted">
-                <i class="fas fa-clock me-1"></i>
-                ${formattedDate}
-            </small>
-            <div class="btn-group btn-group-sm">
-                <button class="btn btn-outline-primary btn-sm" onclick="editTask(${task.id})"
-                        data-bs-toggle="tooltip" title="Editar tarefa">
-                    <i class="fas fa-edit"></i>
+    </div>
+</div>
+
+<!-- Modal Excluir Usuário -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-exclamation-triangle fa-4x text-danger"></i>
+                </div>
+                <div class="alert alert-warning border-0">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-warning me-2"></i>Atenção!
+                    </h6>
+                    <p class="mb-0">
+                        Tem certeza de que deseja excluir o usuário <strong id="deleteUserName"></strong>?
+                    </p>
+                </div>
+                <div class="alert alert-danger border-0">
+                    <small>
+                        <i class="fas fa-info-circle me-1"></i>
+                        Esta ação não pode ser desfeita e todos os dados relacionados serão perdidos.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancelar
                 </button>
-                <button class="btn btn-outline-danger btn-sm" onclick="deleteTask(${task.id})"
-                        data-bs-toggle="tooltip" title="Excluir tarefa">
-                    <i class="fas fa-trash"></i>
-                </button>
+                <form method="POST" action="<?= isset($basePath) ? $basePath : '' ?>/dashboard/user/delete" style="display: inline;">
+                    <input type="hidden" id="deleteUserId" name="id">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Excluir Usuário
+                    </button>
+                </form>
             </div>
         </div>
-    `;
-    
-    return taskDiv;
+    </div>
+</div>
+
+<script>
+function editUser(user) {
+    document.getElementById('editId').value = user.id;
+    document.getElementById('editName').value = user.name;
+    document.getElementById('editEmail').value = user.email;
+    document.getElementById('editRole').value = user.role;
+    new bootstrap.Modal(document.getElementById('editUserModal')).show();
 }
 
-function setupDragAndDrop() {
-    const columns = document.querySelectorAll('.kanban-tasks');
-    
-    columns.forEach(column => {
-        new Sortable(column, {
-            group: 'kanban',
-            animation: 200,
-            ghostClass: 'kanban-ghost',
-            chosenClass: 'kanban-chosen',
-            dragClass: 'kanban-drag',
-            onStart: function(evt) {
-                evt.item.classList.add('dragging');
-                document.body.style.cursor = 'grabbing';
-            },
-            onEnd: function(evt) {
-                evt.item.classList.remove('dragging');
-                document.body.style.cursor = 'default';
-                
-                const taskId = evt.item.dataset.taskId;
-                const newStatus = evt.to.id.replace('-tasks', '');
-                const newPosition = evt.newIndex;
-                
-                updateTaskStatus(taskId, newStatus, newPosition);
-            }
-        });
+function deleteUser(id, name) {
+    document.getElementById('deleteUserId').value = id;
+    document.getElementById('deleteUserName').textContent = name;
+    new bootstrap.Modal(document.getElementById('deleteUserModal')).show();
+}
+
+// Inicializar tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
     });
-}
-
-function updateTaskStatus(taskId, status, position) {
-    fetch('<?= isset($basePath) ? $basePath : '' ?>/tasks/update', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            id: taskId,
-            status: status,
-            position: position
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Atualizar contadores
-            updateCounts();
-            
-            // Mostrar mensagem de sucesso
-            showNotification('Tarefa atualizada com sucesso!', 'success');
-        } else {
-            showNotification('Falha ao atualizar tarefa', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Erro:', error);
-        showNotification('Ocorreu um erro', 'error');
-    });
-}
-
-function updateCounts() {
-    ['todo', 'in_progress', 'done'].forEach(status => {
-        const count = document.getElementById(status + '-tasks').children.length;
-        document.getElementById(status + '-count').textContent = count;
-    });
-}
-
-function editTask(taskId) {
-    // Implementar funcionalidade de edição
-    showNotification('Funcionalidade de edição em breve!', 'info');
-}
-
-function deleteTask(taskId) {
-    if (confirm('Tem certeza de que deseja excluir esta tarefa?')) {
-        // Implementar funcionalidade de exclusão
-        showNotification('Funcionalidade de exclusão em breve!', 'info');
-    }
-}
-
-function showNotification(message, type) {
-    const alertClass = type === 'success' ? 'alert-success' : 
-                      type === 'error' ? 'alert-danger' : 'alert-info';
-    
-    const iconClass = type === 'success' ? 'fa-check-circle' : 
-                     type === 'error' ? 'fa-times-circle' : 'fa-info-circle';
-    
-    const notification = document.createElement('div');
-    notification.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
-    notification.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 350px; box-shadow: 0 6px 20px rgba(204, 9, 47, 0.3);';
-    notification.innerHTML = `
-        <i class="fas ${iconClass} me-2"></i>
-        <strong>${message}</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto remover após 5 segundos
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.classList.remove('show');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 150);
-        }
-    }, 5000);
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+});
 </script>
