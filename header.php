@@ -1,108 +1,13 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <h1 class="page-title">
-                <!-- Bradesco Logo Image in Dashboard Title -->
-                <img src="https://logoeps.com/wp-content/uploads/2013/03/bradesco-vector-logo.png" 
-                     alt="Bradesco" 
-                     class="bradesco-logo-title">
-                Painel de Controle
-            </h1>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-lg-8 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-user-circle me-2"></i>Informações do Perfil
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="<?= isset($basePath) ? $basePath : '' ?>/dashboard/user/edit">
-                        <input type="hidden" name="id" value="<?= $user['id'] ?>">
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="name" class="form-label">
-                                    <i class="fas fa-user me-1 text-bradesco"></i>Nome Completo
-                                </label>
-                                <input type="text" class="form-control border-bradesco" id="name" name="name" 
-                                       value="<?= htmlspecialchars($user['name']) ?>" 
-                                       placeholder="Digite seu nome completo" required>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="email" class="form-label">
-                                    <i class="fas fa-envelope me-1 text-bradesco"></i>Endereço de E-mail
-                                </label>
-                                <input type="email" class="form-control border-bradesco" id="email" name="email" 
-                                       value="<?= htmlspecialchars($user['email']) ?>" 
-                                       placeholder="Digite seu e-mail" required>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="password" class="form-label">
-                                <i class="fas fa-lock me-1 text-bradesco"></i>Nova Senha 
-                                <small class="text-muted">(deixe em branco para manter a atual)</small>
-                            </label>
-                            <input type="password" class="form-control border-bradesco" id="password" name="password" 
-                                   placeholder="Digite uma nova senha ou deixe em branco">
-                        </div>
-                        
-                        <input type="hidden" name="role" value="<?= $user['role'] ?>">
-                        
-                        <button type="submit" class="btn btn-bradesco">
-                            <i class="fas fa-save me-2"></i>Atualizar Perfil
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-line me-2"></i>Estatísticas Rápidas
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <div class="stats-card">
-                                <i class="fas fa-tasks stats-icon text-bradesco"></i>
-                                <div class="stats-number text-bradesco">12</div>
-                                <small class="text-muted">Tarefas Ativas</small>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="stats-card">
-                                <i class="fas fa-check-circle stats-icon text-success"></i>
-                                <div class="stats-number text-success">8</div>
-                                <small class="text-muted">Concluídas</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-3 text-center">
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="stats-card bg-light">
-                                    <i class="fas fa-calendar stats-icon text-bradesco" style="font-size: 2rem;"></i>
-                                    <div style="font-size: 1.2rem; font-weight: bold; color: #6c757d;">
-                                        Membro desde
-                                    </div>
-                                    <small class="text-muted">
-                                        <?= date('M Y', strtotime($user['created_at'])) ?>
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="page-title">
+                    <i class="fas fa-users me-3 text-bradesco"></i>Gerenciamento de Usuários
+                </h1>
+                <button class="btn btn-bradesco pulse-bradesco" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                    <i class="fas fa-user-plus me-2"></i>Adicionar Novo Usuário
+                </button>
             </div>
         </div>
     </div>
@@ -112,37 +17,69 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="fas fa-rocket me-2"></i>Ações Rápidas
+                        <i class="fas fa-list me-2"></i>Lista de Usuários
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <a href="<?= isset($basePath) ? $basePath : '' ?>/tasks/kanban" 
-                               class="btn btn-outline-bradesco w-100 py-3">
-                                <i class="fas fa-tasks fa-2x d-block mb-2"></i>
-                                <strong>Ir para o Quadro Kanban</strong>
-                                <small class="d-block text-muted">Gerencie suas tarefas</small>
-                            </a>
-                        </div>
-                        <?php if (Session::get('user_role') === 'admin'): ?>
-                        <div class="col-md-4 mb-3">
-                            <a href="<?= isset($basePath) ? $basePath : '' ?>/dashboard/users" 
-                               class="btn btn-outline-success w-100 py-3">
-                                <i class="fas fa-users fa-2x d-block mb-2"></i>
-                                <strong>Gerenciar Usuários</strong>
-                                <small class="d-block text-muted">Painel administrativo</small>
-                            </a>
-                        </div>
-                        <?php endif; ?>
-                        <div class="col-md-4 mb-3">
-                            <button class="btn btn-outline-info w-100 py-3" 
-                                    data-bs-toggle="modal" data-bs-target="#createTaskModal">
-                                <i class="fas fa-plus fa-2x d-block mb-2"></i>
-                                <strong>Criar Nova Tarefa</strong>
-                                <small class="d-block text-muted">Adicionar ao seu quadro</small>
-                            </button>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th>E-mail</th>
+                                    <th>Função</th>
+                                    <th>Criado em</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($users as $user): ?>
+                                <tr>
+                                    <td><span class="badge bg-light text-dark"><?= $user['id'] ?></span></td>
+                                    <td>
+                                        <i class="fas fa-user-circle me-2 text-bradesco"></i>
+                                        <strong><?= htmlspecialchars($user['name']) ?></strong>
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-envelope me-1 text-muted"></i>
+                                        <?= htmlspecialchars($user['email']) ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge <?= $user['role'] === 'admin' ? 'bg-bradesco' : 'bg-secondary' ?>">
+                                            <i class="fas fa-<?= $user['role'] === 'admin' ? 'crown' : 'user' ?> me-1"></i>
+                                            <?= $user['role'] === 'admin' ? 'Administrador' : 'Usuário' ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-calendar me-1 text-muted"></i>
+                                        <?= date('d/m/Y', strtotime($user['created_at'])) ?>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="editUser(<?= htmlspecialchars(json_encode($user)) ?>)"
+                                                    data-bs-toggle="tooltip" title="Editar usuário">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <?php if ($user['id'] != Session::get('user_id')): ?>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="confirmDeleteUser(<?= $user['id'] ?>, '<?= htmlspecialchars($user['name']) ?>')"
+                                                    data-bs-toggle="tooltip" title="Excluir usuário">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            <?php else: ?>
+                                            <button class="btn btn-sm btn-outline-secondary" disabled
+                                                    data-bs-toggle="tooltip" title="Você não pode excluir sua própria conta">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -150,31 +87,48 @@
     </div>
 </div>
 
-<!-- Modal Criar Tarefa -->
-<div class="modal fade" id="createTaskModal" tabindex="-1">
+<!-- Modal Criar Usuário -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-bradesco text-white">
                 <h5 class="modal-title">
-                    <i class="fas fa-plus me-2"></i>Criar Nova Tarefa
+                    <i class="fas fa-user-plus me-2"></i>Adicionar Novo Usuário
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="<?= isset($basePath) ? $basePath : '' ?>/tasks/create">
+            <form method="POST" action="<?= isset($basePath) ? $basePath : '' ?>/dashboard/user/create">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="taskTitle" class="form-label">
-                            <i class="fas fa-heading me-1 text-bradesco"></i>Título da Tarefa
+                        <label for="createName" class="form-label">
+                            <i class="fas fa-user me-1 text-bradesco"></i>Nome Completo
                         </label>
-                        <input type="text" class="form-control border-bradesco" id="taskTitle" name="title" 
-                               placeholder="Digite o título da tarefa..." required>
+                        <input type="text" class="form-control border-bradesco" id="createName" name="name" 
+                               placeholder="Digite o nome completo" required>
                     </div>
                     <div class="mb-3">
-                        <label for="taskDescription" class="form-label">
-                            <i class="fas fa-align-left me-1 text-bradesco"></i>Descrição
+                        <label for="createEmail" class="form-label">
+                            <i class="fas fa-envelope me-1 text-bradesco"></i>Endereço de E-mail
                         </label>
-                        <textarea class="form-control border-bradesco" id="taskDescription" name="description" 
-                                  rows="3" placeholder="Digite a descrição da tarefa..."></textarea>
+                        <input type="email" class="form-control border-bradesco" id="createEmail" name="email" 
+                               placeholder="Digite o e-mail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="createPassword" class="form-label">
+                            <i class="fas fa-lock me-1 text-bradesco"></i>Senha
+                        </label>
+                        <input type="password" class="form-control border-bradesco" id="createPassword" name="password" 
+                               placeholder="Digite a senha" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="createRole" class="form-label">
+                            <i class="fas fa-user-tag me-1 text-bradesco"></i>Função
+                        </label>
+                        <select class="form-select border-bradesco" id="createRole" name="role" required>
+                            <option value="">Selecione uma função</option>
+                            <option value="user">Usuário</option>
+                            <option value="admin">Administrador</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -182,10 +136,200 @@
                         <i class="fas fa-times me-1"></i>Cancelar
                     </button>
                     <button type="submit" class="btn btn-bradesco">
-                        <i class="fas fa-save me-2"></i>Criar Tarefa
+                        <i class="fas fa-save me-2"></i>Criar Usuário
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<!-- Modal Editar Usuário -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-bradesco text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-edit me-2"></i>Editar Usuário
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="<?= isset($basePath) ? $basePath : '' ?>/dashboard/user/edit">
+                <div class="modal-body">
+                    <input type="hidden" id="editId" name="id">
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">
+                            <i class="fas fa-user me-1 text-bradesco"></i>Nome Completo
+                        </label>
+                        <input type="text" class="form-control border-bradesco" id="editName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editEmail" class="form-label">
+                            <i class="fas fa-envelope me-1 text-bradesco"></i>Endereço de E-mail
+                        </label>
+                        <input type="email" class="form-control border-bradesco" id="editEmail" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPassword" class="form-label">
+                            <i class="fas fa-lock me-1 text-bradesco"></i>Nova Senha 
+                            <small class="text-muted">(deixe em branco para manter a atual)</small>
+                        </label>
+                        <input type="password" class="form-control border-bradesco" id="editPassword" name="password"
+                               placeholder="Digite nova senha ou deixe em branco">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRole" class="form-label">
+                            <i class="fas fa-user-tag me-1 text-bradesco"></i>Função
+                        </label>
+                        <select class="form-select border-bradesco" id="editRole" name="role" required>
+                            <option value="user">Usuário</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-bradesco">
+                        <i class="fas fa-save me-2"></i>Atualizar Usuário
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Excluir Usuário -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-exclamation-triangle fa-4x text-danger"></i>
+                </div>
+                <div class="alert alert-warning border-0">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-warning me-2"></i>Atenção!
+                    </h6>
+                    <p class="mb-0">
+                        Tem certeza de que deseja excluir o usuário <strong><span id="deleteUserName">N/A</span></strong>?
+                    </p>
+                </div>
+                <div class="alert alert-danger border-0">
+                    <small>
+                        <i class="fas fa-info-circle me-1"></i>
+                        Esta ação não pode ser desfeita e todos os dados relacionados serão perdidos.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </button>
+                <form method="POST" action="<?= isset($basePath) ? $basePath : '' ?>/dashboard/user/delete" style="display: inline;">
+                    <input type="hidden" id="deleteUserId" name="id">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Excluir Usuário
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function editUser(user) {
+    // Ensure all elements exist before setting values
+    const editIdField = document.getElementById('editId');
+    const editNameField = document.getElementById('editName');
+    const editEmailField = document.getElementById('editEmail');
+    const editRoleField = document.getElementById('editRole');
+    
+    if (editIdField && editNameField && editEmailField && editRoleField) {
+        editIdField.value = user.id;
+        editNameField.value = user.name;
+        editEmailField.value = user.email;
+        editRoleField.value = user.role;
+        
+        const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+        editModal.show();
+    } else {
+        console.error('Edit user modal elements not found');
+        alert('Erro ao carregar modal de edição. Recarregue a página e tente novamente.');
+    }
+}
+
+function confirmDeleteUser(id, name) {
+    // Ensure all elements exist before setting values
+    const deleteUserIdField = document.getElementById('deleteUserId');
+    const deleteUserNameField = document.getElementById('deleteUserName');
+    
+    if (deleteUserIdField && deleteUserNameField) {
+        deleteUserIdField.value = id;
+        deleteUserNameField.textContent = name;
+        
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
+        deleteModal.show();
+    } else {
+        console.error('Delete user modal elements not found:', {
+            deleteUserIdField: !!deleteUserIdField,
+            deleteUserNameField: !!deleteUserNameField
+        });
+        
+        // Fallback confirmation
+        if (confirm(`Tem certeza de que deseja excluir o usuário "${name}"?\n\nEsta ação não pode ser desfeita.`)) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '<?= isset($basePath) ? $basePath : '' ?>/dashboard/user/delete';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'id';
+            input.value = id;
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+}
+
+// Legacy function for backwards compatibility
+function deleteUser(id, name) {
+    confirmDeleteUser(id, name);
+}
+
+// Initialize tooltips when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Verify modal elements exist
+    const requiredElements = [
+        'deleteUserModal',
+        'deleteUserName', 
+        'deleteUserId',
+        'editUserModal',
+        'editId',
+        'editName',
+        'editEmail',
+        'editRole'
+    ];
+    
+    const missingElements = requiredElements.filter(id => !document.getElementById(id));
+    
+    if (missingElements.length > 0) {
+        console.warn('Missing required elements:', missingElements);
+    }
+});
+</script>
