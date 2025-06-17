@@ -1,395 +1,191 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplicação PHP MVC</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --bradesco-red: #CC092F;
-            --bradesco-red-dark: #A91E1E;
-            --bradesco-red-light: #E31E3F;
-            --bradesco-gradient: linear-gradient(135deg, #CC092F 0%, #E31E3F 50%, #CC092F 100%);
-            --bradesco-shadow: rgba(204, 9, 47, 0.3);
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-        }
-        
-        .navbar-brand {
-            font-weight: bold;
-            color: white !important;
-            display: flex;
-            align-items: center;
-        }
-        
-        .bradesco-logo-navbar {
-            max-height: 32px;
-            width: auto;
-            margin-right: 10px;
-            transition: transform 0.3s ease;
-            filter: brightness(0) invert(1); /* Makes logo white */
-        }
-        
-        .bradesco-logo-navbar:hover {
-            transform: scale(1.05);
-        }
-        
-        .sidebar {
-            height: 100vh;
-            background: var(--bradesco-gradient);
-            color: white;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 250px;
-            padding-top: 70px;
-            z-index: 1000;
-            overflow-y: auto;
-            box-shadow: 4px 0 15px var(--bradesco-shadow);
-        }
-        
-        .sidebar .nav-link {
-            color: rgba(255, 255, 255, 0.9);
-            padding: 15px 20px;
-            border-radius: 0;
-            transition: all 0.3s ease;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin: 2px 0;
-        }
-        
-        .sidebar .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.15);
-            color: white;
-            transform: translateX(5px);
-            border-left: 4px solid white;
-        }
-        
-        .sidebar .nav-link.active {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: white;
-            border-left: 4px solid white;
-            font-weight: 600;
-        }
-        
-        .main-content {
-            margin-left: 250px;
-            margin-top: 60px;
-            padding: 30px;
-            min-height: calc(100vh - 60px);
-            background-color: #f8f9fa;
-        }
-        
-        .page-title {
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid var(--bradesco-red);
-            color: #2c3e50;
-            display: flex;
-            align-items: center;
-        }
-        
-        .page-title .bradesco-logo-title {
-            max-height: 40px;
-            width: auto;
-            margin-right: 15px;
-            transition: transform 0.3s ease;
-            filter: drop-shadow(0 2px 4px rgba(204, 9, 47, 0.3));
-        }
-        
-        .page-title:hover .bradesco-logo-title {
-            transform: scale(1.05);
-        }
-        
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            margin-bottom: 20px;
-        }
-        
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(204, 9, 47, 0.15);
-        }
-        
-        .card-header {
-            background: var(--bradesco-gradient);
-            color: white;
-            border-radius: 15px 15px 0 0 !important;
-            border: none;
-            font-weight: 600;
-        }
-        
-        .kanban-column {
-            background-color: #f8f9fa;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 10px;
-            min-height: 400px;
-            border: 2px solid #e9ecef;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-        
-        .kanban-card {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            cursor: move;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            border-left: 4px solid var(--bradesco-red);
-        }
-        
-        .kanban-card:hover {
-            box-shadow: 0 6px 20px rgba(204, 9, 47, 0.2);
-            transform: translateY(-2px);
-        }
-        
-        .kanban-card.dragging {
-            opacity: 0.7;
-            transform: rotate(3deg);
-            box-shadow: 0 8px 25px var(--bradesco-shadow);
-        }
-        
-        .kanban-column.drag-over {
-            background-color: #fff5f5;
-            border: 2px dashed var(--bradesco-red);
-            transform: scale(1.02);
-        }
-        
-        .btn-bradesco {
-            background: var(--bradesco-gradient);
-            border: none;
-            color: white;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            box-shadow: 0 3px 10px var(--bradesco-shadow);
-        }
-        
-        .btn-bradesco:hover {
-            background: linear-gradient(135deg, #A91E1E 0%, #CC092F 50%, #A91E1E 100%);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px var(--bradesco-shadow);
-        }
-        
-        .btn-outline-bradesco {
-            border: 2px solid var(--bradesco-red);
-            color: var(--bradesco-red);
-            background: transparent;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-outline-bradesco:hover {
-            background: var(--bradesco-gradient);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px var(--bradesco-shadow);
-        }
-        
-        .login-container {
-            min-height: 100vh;
-            background: var(--bradesco-gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        
-        .login-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.05)" points="0,1000 1000,800 1000,1000"/></svg>');
-            background-size: cover;
-        }
-        
-        .login-card {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
-            position: relative;
-            z-index: 1;
-        }
-        
-        .stats-card {
-            text-align: center;
-            padding: 25px;
-            border-radius: 15px;
-            background: white;
-            margin-bottom: 15px;
-            border: 2px solid #f8f9fa;
-            transition: all 0.3s ease;
-        }
-        
-        .stats-card:hover {
-            border-color: var(--bradesco-red);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px var(--bradesco-shadow);
-        }
-        
-        .stats-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        
-        .stats-icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
-        }
-        
-        .navbar-dark {
-            background: var(--bradesco-gradient) !important;
-            box-shadow: 0 2px 10px var(--bradesco-shadow);
-        }
-        
-        .text-bradesco {
-            color: var(--bradesco-red) !important;
-        }
-        
-        .bg-bradesco {
-            background: var(--bradesco-gradient) !important;
-        }
-        
-        .border-bradesco {
-            border-color: var(--bradesco-red) !important;
-        }
-        
-        .badge.bg-primary {
-            background: var(--bradesco-gradient) !important;
-        }
-        
-        .alert-info {
-            background-color: #fff5f5;
-            border-color: var(--bradesco-red);
-            color: var(--bradesco-red-dark);
-        }
-        
-        .alert-success {
-            background-color: #f0f9ff;
-            border-color: #0ea5e9;
-            color: #0c4a6e;
-        }
-        
-        .table-dark {
-            background: var(--bradesco-gradient) !important;
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-            
-            .sidebar.show {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                margin-left: 0;
-                padding: 20px 15px;
-            }
-            
-            .page-title {
-                font-size: 1.5rem;
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .page-title .bradesco-logo-title {
-                margin-right: 0;
-                margin-bottom: 10px;
-            }
-            
-            .bradesco-logo-navbar {
-                max-height: 28px;
-            }
-        }
-        
-        /* Animações personalizadas */
-        @keyframes pulse-bradesco {
-            0% { box-shadow: 0 0 0 0 var(--bradesco-shadow); }
-            70% { box-shadow: 0 0 0 10px rgba(204, 9, 47, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(204, 9, 47, 0); }
-        }
-        
-        .pulse-bradesco {
-            animation: pulse-bradesco 2s infinite;
-        }
-        
-        /* Customização do scrollbar */
-        .sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .sidebar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-        }
-        
-        .sidebar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
-    </style>
-</head>
-<body>
-    <?php if (Session::isLoggedIn()): ?>
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-        <div class="container-fluid">
-            <button class="btn btn-outline-light d-md-none me-2" type="button" id="sidebarToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-            <a class="navbar-brand" href="<?= isset($basePath) ? $basePath : '' ?>/dashboard">
-                <!-- Bradesco Logo Image -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="page-title">
+                <!-- Bradesco Logo Image in Dashboard Title -->
                 <img src="https://logoeps.com/wp-content/uploads/2013/03/bradesco-vector-logo.png" 
                      alt="Bradesco" 
-                     class="bradesco-logo-navbar">
-                Sistema MVC
-            </a>
-            <div class="navbar-nav ms-auto">
-                <span class="navbar-text me-3">
-                    <i class="fas fa-user me-1"></i>Bem-vindo(a), <?= Session::get('user_name') ?>
-                </span>
-                <a href="<?= isset($basePath) ? $basePath : '' ?>/auth/logout" class="btn btn-outline-light btn-sm">
-                    <i class="fas fa-sign-out-alt me-1"></i>Sair
-                </a>
-            </div>
+                     class="bradesco-logo-title">
+                Painel de Controle
+            </h1>
         </div>
-    </nav>
-    
-    <div class="sidebar" id="sidebar">
-        <nav class="nav flex-column">
-            <a class="nav-link" href="<?= isset($basePath) ? $basePath : '' ?>/dashboard">
-                <i class="fas fa-tachometer-alt me-2"></i>Painel de Controle
-            </a>
-            <?php if (Session::get('user_role') === 'admin'): ?>
-            <a class="nav-link" href="<?= isset($basePath) ? $basePath : '' ?>/dashboard/users">
-                <i class="fas fa-users me-2"></i>Gerenciar Usuários
-            </a>
-            <?php endif; ?>
-            <a class="nav-link" href="<?= isset($basePath) ? $basePath : '' ?>/tasks/kanban">
-                <i class="fas fa-tasks me-2"></i>Quadro Kanban
-            </a>
-        </nav>
     </div>
     
-    <div class="main-content">
-    <?php endif; ?>
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-circle me-2"></i>Informações do Perfil
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="<?= isset($basePath) ? $basePath : '' ?>/dashboard/user/edit">
+                        <input type="hidden" name="id" value="<?= $user['id'] ?>">
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">
+                                    <i class="fas fa-user me-1 text-bradesco"></i>Nome Completo
+                                </label>
+                                <input type="text" class="form-control border-bradesco" id="name" name="name" 
+                                       value="<?= htmlspecialchars($user['name']) ?>" 
+                                       placeholder="Digite seu nome completo" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="fas fa-envelope me-1 text-bradesco"></i>Endereço de E-mail
+                                </label>
+                                <input type="email" class="form-control border-bradesco" id="email" name="email" 
+                                       value="<?= htmlspecialchars($user['email']) ?>" 
+                                       placeholder="Digite seu e-mail" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock me-1 text-bradesco"></i>Nova Senha 
+                                <small class="text-muted">(deixe em branco para manter a atual)</small>
+                            </label>
+                            <input type="password" class="form-control border-bradesco" id="password" name="password" 
+                                   placeholder="Digite uma nova senha ou deixe em branco">
+                        </div>
+                        
+                        <input type="hidden" name="role" value="<?= $user['role'] ?>">
+                        
+                        <button type="submit" class="btn btn-bradesco">
+                            <i class="fas fa-save me-2"></i>Atualizar Perfil
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Estatísticas Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="stats-card">
+                                <i class="fas fa-tasks stats-icon text-bradesco"></i>
+                                <div class="stats-number text-bradesco">12</div>
+                                <small class="text-muted">Tarefas Ativas</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stats-card">
+                                <i class="fas fa-check-circle stats-icon text-success"></i>
+                                <div class="stats-number text-success">8</div>
+                                <small class="text-muted">Concluídas</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 text-center">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="stats-card bg-light">
+                                    <i class="fas fa-calendar stats-icon text-bradesco" style="font-size: 2rem;"></i>
+                                    <div style="font-size: 1.2rem; font-weight: bold; color: #6c757d;">
+                                        Membro desde
+                                    </div>
+                                    <small class="text-muted">
+                                        <?= date('M Y', strtotime($user['created_at'])) ?>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-rocket me-2"></i>Ações Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <a href="<?= isset($basePath) ? $basePath : '' ?>/tasks/kanban" 
+                               class="btn btn-outline-bradesco w-100 py-3">
+                                <i class="fas fa-tasks fa-2x d-block mb-2"></i>
+                                <strong>Ir para o Quadro Kanban</strong>
+                                <small class="d-block text-muted">Gerencie suas tarefas</small>
+                            </a>
+                        </div>
+                        <?php if (Session::get('user_role') === 'admin'): ?>
+                        <div class="col-md-4 mb-3">
+                            <a href="<?= isset($basePath) ? $basePath : '' ?>/dashboard/users" 
+                               class="btn btn-outline-success w-100 py-3">
+                                <i class="fas fa-users fa-2x d-block mb-2"></i>
+                                <strong>Gerenciar Usuários</strong>
+                                <small class="d-block text-muted">Painel administrativo</small>
+                            </a>
+                        </div>
+                        <?php endif; ?>
+                        <div class="col-md-4 mb-3">
+                            <button class="btn btn-outline-info w-100 py-3" 
+                                    data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                                <i class="fas fa-plus fa-2x d-block mb-2"></i>
+                                <strong>Criar Nova Tarefa</strong>
+                                <small class="d-block text-muted">Adicionar ao seu quadro</small>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Criar Tarefa -->
+<div class="modal fade" id="createTaskModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-bradesco text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus me-2"></i>Criar Nova Tarefa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="<?= isset($basePath) ? $basePath : '' ?>/tasks/create">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="taskTitle" class="form-label">
+                            <i class="fas fa-heading me-1 text-bradesco"></i>Título da Tarefa
+                        </label>
+                        <input type="text" class="form-control border-bradesco" id="taskTitle" name="title" 
+                               placeholder="Digite o título da tarefa..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskDescription" class="form-label">
+                            <i class="fas fa-align-left me-1 text-bradesco"></i>Descrição
+                        </label>
+                        <textarea class="form-control border-bradesco" id="taskDescription" name="description" 
+                                  rows="3" placeholder="Digite a descrição da tarefa..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-bradesco">
+                        <i class="fas fa-save me-2"></i>Criar Tarefa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
