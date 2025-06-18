@@ -151,39 +151,31 @@ $manager_image = "https://via.placeholder.com/80x80/4A90E2/FFFFFF?text=SM"; // P
             border-radius: 50%;
         }
 
-        .bottom-section {
-            background: #f8f9fa;
+        .table-section {
             padding: 20px 30px;
+            background: #f8f9fa;
             border-top: 1px solid #dee2e6;
         }
 
-        .large-databoxes {
-            display: inline-block;
+        .table-placeholder {
             background: white;
-            padding: 15px 25px;
             border-radius: 8px;
-            border-left: 4px solid #007bff;
-            font-size: 16px;
-            font-weight: 500;
-            color: #495057;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            border: 2px dashed #dee2e6;
         }
 
         @media (max-width: 768px) {
             .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
+                flex-direction: column;
+                gap: 15px;
             }
             
-            .progress-card {
+            .stat-card {
                 flex-direction: column;
                 text-align: center;
-                gap: 20px;
-            }
-            
-            .manager-info {
-                flex-direction: column;
-                text-align: center;
+                gap: 15px;
             }
         }
     </style>
@@ -192,59 +184,87 @@ $manager_image = "https://via.placeholder.com/80x80/4A90E2/FFFFFF?text=SM"; // P
     <div class="dashboard-container">
         <!-- Header Section -->
         <div class="header-section">
-            <div class="manager-info">
-                <img src="<?php echo $manager_image; ?>" alt="Manager" class="manager-avatar">
-                <div class="manager-details">
-                    <h2><?php echo $manager_name; ?></h2>
-                    <p>Dashboard Overview</p>
-                </div>
-            </div>
+            <h2><?php echo $manager_name; ?></h2>
+            <p>Dashboard Overview</p>
         </div>
 
         <!-- Content Section -->
         <div class="content-section">
             <div class="stats-grid">
-                <!-- Progress Chart Card -->
-                <div class="stat-card progress-card">
+                <!-- Combined Card: Chart + Tasks -->
+                <div class="stat-card">
                     <div class="chart-container">
                         <div class="progress-chart" data-percent="<?php echo $completion_percentage; ?>">
                             <span class="progress-value"><?php echo $completion_percentage; ?>%</span>
                         </div>
                     </div>
+                    <div class="tasks-info">
+                        <div class="menu-icon">
+                            <div class="menu-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        <div class="task-number"><?php echo $new_tasks; ?></div>
+                        <div class="task-label">New Tasks</div>
+                    </div>
                 </div>
 
-                <!-- Tasks Card -->
-                <div class="stat-card tasks-card">
-                    <div class="menu-icon">
-                        <div class="menu-dots">
-                            <span></span>
-                            <span></span>
-                            <span></span>
+                <!-- Card 2 - Add your second card here -->
+                <div class="stat-card">
+                    <div class="chart-container">
+                        <div class="progress-chart" data-percent="75">
+                            <span class="progress-value">75%</span>
                         </div>
                     </div>
-                    <div class="task-number"><?php echo $new_tasks; ?></div>
-                    <div class="task-label">New Tasks</div>
+                    <div class="tasks-info">
+                        <div class="task-number">8</div>
+                        <div class="task-label">Completed</div>
+                    </div>
+                </div>
+
+                <!-- Card 3 - Add your third card here -->
+                <div class="stat-card">
+                    <div class="chart-container">
+                        <div class="progress-chart" data-percent="30">
+                            <span class="progress-value">30%</span>
+                        </div>
+                    </div>
+                    <div class="tasks-info">
+                        <div class="task-number">5</div>
+                        <div class="task-label">Pending</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Bottom Section -->
-        <div class="bottom-section">
-            <div class="large-databoxes">
-                Large Databoxes
+        <!-- Table Section -->
+        <div class="table-section">
+            <div class="table-placeholder">
+                <!-- Add your table here -->
+                <p>Table will be added here</p>
             </div>
         </div>
     </div>
 
     <script>
         $(document).ready(function() {
-            // Initialize Easy Pie Chart
+            // Initialize Easy Pie Chart for all charts
             $('.progress-chart').easyPieChart({
-                size: 120,
+                size: 80,
                 barColor: '#E74C3C',
                 trackColor: '#f1f1f1',
                 scaleColor: false,
-                lineWidth: 8,
+                lineWidth: 6,
+                animate: {
+                    duration: 2000,
+                    enabled: true
+                },
+                onStep: function(from, to, percent) {
+                    $(this.el).find('.progress-value').text(Math.round(percent) + '%');
+                }
+            });lineWidth: 8,
                 animate: {
                     duration: 2000,
                     enabled: true
