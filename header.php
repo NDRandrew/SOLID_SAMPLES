@@ -88,6 +88,15 @@ $manager_name = "Services Manager";
 
         .progress-chart {
             position: relative;
+            width: 70px;
+            height: 70px;
+            margin: 0 auto;
+        }
+
+        .progress-chart canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
         }
 
         .progress-value {
@@ -173,14 +182,14 @@ $manager_name = "Services Manager";
                     <div class="col-lg-4 col-md-6">
                         <div class="stat-card p-3">
                             <div class="row align-items-center">
-                                <div class="col-5">
+                                <div class="col-4">
                                     <div class="chart-container">
                                         <div class="progress-chart" data-percent="<?php echo $completion_percentage; ?>" data-color="#E74C3C">
                                             <span class="progress-value"><?php echo $completion_percentage; ?>%</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-7 text-center">
+                                <div class="col-8 text-center">
                                     <div class="d-flex justify-content-end mb-2">
                                         <div class="menu-dots">
                                             <span></span>
@@ -199,14 +208,14 @@ $manager_name = "Services Manager";
                     <div class="col-lg-4 col-md-6">
                         <div class="stat-card p-3 chart-success">
                             <div class="row align-items-center">
-                                <div class="col-5">
+                                <div class="col-4">
                                     <div class="chart-container">
                                         <div class="progress-chart" data-percent="75" data-color="#28a745">
                                             <span class="progress-value">75%</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-7 text-center">
+                                <div class="col-8 text-center">
                                     <div class="task-number" style="color: #28a745;"><?php echo $completed_tasks; ?></div>
                                     <div class="task-label">Completed</div>
                                 </div>
@@ -218,14 +227,14 @@ $manager_name = "Services Manager";
                     <div class="col-lg-4 col-md-6">
                         <div class="stat-card p-3 chart-warning">
                             <div class="row align-items-center">
-                                <div class="col-5">
+                                <div class="col-4">
                                     <div class="chart-container">
                                         <div class="progress-chart" data-percent="30" data-color="#ffc107">
                                             <span class="progress-value">30%</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-7 text-center">
+                                <div class="col-8 text-center">
                                     <div class="task-number" style="color: #ffc107;"><?php echo $pending_tasks; ?></div>
                                     <div class="task-label">Pending</div>
                                 </div>
@@ -247,26 +256,29 @@ $manager_name = "Services Manager";
 
     <script>
         $(document).ready(function() {
-            // Initialize Easy Pie Chart for all charts with custom colors
-            $('.progress-chart').each(function() {
-                var $this = $(this);
-                var color = $this.data('color') || '#E74C3C';
-                
-                $this.easyPieChart({
-                    size: 70,
-                    barColor: color,
-                    trackColor: '#f1f1f1',
-                    scaleColor: false,
-                    lineWidth: 6,
-                    animate: {
-                        duration: 2000,
-                        enabled: true
-                    },
-                    onStep: function(from, to, percent) {
-                        $(this.el).find('.progress-value').text(Math.round(percent) + '%');
-                    }
+            // Wait for DOM to be fully loaded
+            setTimeout(function() {
+                // Initialize Easy Pie Chart for all charts with custom colors
+                $('.progress-chart').each(function() {
+                    var $this = $(this);
+                    var color = $this.data('color') || '#E74C3C';
+                    
+                    $this.easyPieChart({
+                        size: 70,
+                        barColor: color,
+                        trackColor: '#f1f1f1',
+                        scaleColor: false,
+                        lineWidth: 6,
+                        animate: {
+                            duration: 2000,
+                            enabled: true
+                        },
+                        onStep: function(from, to, percent) {
+                            $(this.el).find('.progress-value').text(Math.round(percent) + '%');
+                        }
+                    });
                 });
-            });
+            }, 100);
 
             // Add hover effects
             $('.stat-card').hover(
@@ -280,27 +292,28 @@ $manager_name = "Services Manager";
 
             // Menu dots click handler
             $('.menu-dots').click(function() {
-                // You can add dropdown menu functionality here
-                console.log('Menu clicked');
+                alert('Menu clicked! Add dropdown functionality here.');
             });
 
             // Animate all task numbers on load
-            $('.task-number').each(function() {
-                var $this = $(this);
-                var targetNum = parseInt($this.text());
-                $this.text('0');
-                
-                $({ countNum: 0 }).animate({ countNum: targetNum }, {
-                    duration: 1500,
-                    easing: 'swing',
-                    step: function() {
-                        $this.text(Math.floor(this.countNum));
-                    },
-                    complete: function() {
-                        $this.text(targetNum);
-                    }
+            setTimeout(function() {
+                $('.task-number').each(function() {
+                    var $this = $(this);
+                    var targetNum = parseInt($this.text());
+                    $this.text('0');
+                    
+                    $({ countNum: 0 }).animate({ countNum: targetNum }, {
+                        duration: 1500,
+                        easing: 'swing',
+                        step: function() {
+                            $this.text(Math.floor(this.countNum));
+                        },
+                        complete: function() {
+                            $this.text(targetNum);
+                        }
+                    });
                 });
-            });
+            }, 500);
         });
 
         // Function to update chart data
@@ -314,16 +327,18 @@ $manager_name = "Services Manager";
         // Function to update task count
         function updateTasks(cardIndex, newCount) {
             var $taskNumber = $('.task-number').eq(cardIndex);
-            $({ countNum: parseInt($taskNumber.text()) }).animate({ countNum: newCount }, {
-                duration: 1000,
-                easing: 'swing',
-                step: function() {
-                    $taskNumber.text(Math.floor(this.countNum));
-                },
-                complete: function() {
-                    $taskNumber.text(newCount);
-                }
-            });
+            if ($taskNumber.length) {
+                $({ countNum: parseInt($taskNumber.text()) || 0 }).animate({ countNum: newCount }, {
+                    duration: 1000,
+                    easing: 'swing',
+                    step: function() {
+                        $taskNumber.text(Math.floor(this.countNum));
+                    },
+                    complete: function() {
+                        $taskNumber.text(newCount);
+                    }
+                });
+            }
         }
     </script>
 </body>
