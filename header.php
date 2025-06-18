@@ -45,31 +45,17 @@ $manager_image = "https://via.placeholder.com/80x80/4A90E2/FFFFFF?text=SM"; // P
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             padding: 30px;
             border-bottom: 1px solid #dee2e6;
+            text-align: center;
         }
 
-        .manager-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .manager-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #fff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        .manager-details h2 {
+        .header-section h2 {
             color: #495057;
             font-size: 28px;
             font-weight: 300;
             margin-bottom: 5px;
         }
 
-        .manager-details p {
+        .header-section p {
             color: #6c757d;
             font-size: 16px;
         }
@@ -79,34 +65,36 @@ $manager_image = "https://via.placeholder.com/80x80/4A90E2/FFFFFF?text=SM"; // P
         }
 
         .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            display: flex;
+            gap: 20px;
             margin-bottom: 30px;
         }
 
         .stat-card {
+            flex: 1;
             background: white;
             border-radius: 12px;
-            padding: 30px;
+            padding: 20px;
             box-shadow: 0 2px 15px rgba(0,0,0,0.08);
             border: 1px solid #e9ecef;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 20px;
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
 
-        .progress-card {
-            display: flex;
-            align-items: center;
-            gap: 25px;
+        .chart-container {
+            flex-shrink: 0;
         }
 
-        .chart-container {
-            position: relative;
+        .tasks-info {
+            flex: 1;
+            text-align: center;
         }
 
         .progress-chart {
@@ -122,26 +110,21 @@ $manager_image = "https://via.placeholder.com/80x80/4A90E2/FFFFFF?text=SM"; // P
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 24px;
+            font-size: 18px;
             font-weight: 600;
             color: #E74C3C;
         }
 
-        .tasks-card {
-            text-align: center;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        }
-
         .task-number {
-            font-size: 48px;
+            font-size: 32px;
             font-weight: 700;
             color: #E74C3C;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             display: block;
         }
 
         .task-label {
-            font-size: 18px;
+            font-size: 14px;
             color: #6c757d;
             text-transform: uppercase;
             letter-spacing: 1px;
