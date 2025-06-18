@@ -1,51 +1,322 @@
-# Soluções para Redirecionamento 404 em Sistemas PHP MVC
+<?php
+// Dashboard data - you can modify these values or fetch from database
+$completion_percentage = 50;
+$new_tasks = 14;
+$manager_name = "Services Manager";
+$manager_image = "https://via.placeholder.com/80x80/4A90E2/FFFFFF?text=SM"; // Placeholder image
+?>
 
-## O problema principal: redirect funciona, mas destino retorna 404
-
-Quando um sistema PHP MVC redireciona com sucesso (código HTTP 302) mas a URL de destino `/dashboard` resulta em erro 404, isso indica um problema no **processamento da rota de destino**, não no redirecionamento em si. A URL resultante `/teste/Andre/Crud/auth/login` sugere que o sistema está interpretando incorretamente a estrutura da URL.
-
-## Causas mais comuns e soluções práticas
-
-### 1. Problemas no Router::handleRequest()
-
-**Causa**: Parser de URL incorreto que não remove o base path adequadamente. [Stack Overflow](https://stackoverflow.com/questions/66872478/php-mvc-why-does-my-route-controller-give-404s-when-on-live-server?& strpos($uri, $this->basePath) === 0) {
-            $uri = substr($uri, strlen($this->basePath));
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Chart</title>
+    
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    
+    <!-- Easy Pie Chart -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/easy-pie-chart/2.1.6/jquery.easypiechart.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
-        return trim($uri, '/');
-    }
-    
-    private function routeExists($uri) {
-        // Verificar se rota está registrada
-        return isset($this->routes[$uri]) || $this->findDynamicRoute($uri);
-    }
-}
-```
 
-### 2. Implementação correta do método redirect()
-
-**Problemas comuns**: Headers já enviados, URLs mal formadas, ausência de exit(). [Tech Couch](https://www.tech-couch.com/post/php-output-buffering?& $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
-            return "$protocol://{$_SERVER['HTTP_HOST']}$path";
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
         }
-        
-        // Caso contrário, relativa ao baseUrl
-        return $this->baseUrl . '/' . ltrim($path, '/');
-    }
-    
-    private function getBaseUrl() {
-        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
-        $host = $_SERVER['HTTP_HOST'];
-        $path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-        return "$protocol://$host$path";
-    }
-    
-    private function fallbackRedirect($url) {
-        echo "<script>window.location.href='" . htmlspecialchars($url, ENT_QUOTES) . "';</script>";
-        exit();
-    }
-}
-```
 
-### 3. Configuração correta do .htaccess
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
 
-**Problema**: .htaccess mal configurado para subdiretórios. [Php +5](https://www.php.cn/faq/516151.html
+        .header-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .manager-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .manager-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .manager-details h2 {
+            color: #495057;
+            font-size: 28px;
+            font-weight: 300;
+            margin-bottom: 5px;
+        }
+
+        .manager-details p {
+            color: #6c757d;
+            font-size: 16px;
+        }
+
+        .content-section {
+            padding: 40px 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .progress-card {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .chart-container {
+            position: relative;
+        }
+
+        .progress-chart {
+            position: relative;
+        }
+
+        .progress-chart canvas {
+            transform: rotate(-90deg);
+        }
+
+        .progress-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: 600;
+            color: #E74C3C;
+        }
+
+        .tasks-card {
+            text-align: center;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        }
+
+        .task-number {
+            font-size: 48px;
+            font-weight: 700;
+            color: #E74C3C;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .task-label {
+            font-size: 18px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .menu-icon {
+            float: right;
+            margin-top: -10px;
+        }
+
+        .menu-dots {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            cursor: pointer;
+            padding: 10px;
+        }
+
+        .menu-dots span {
+            width: 4px;
+            height: 4px;
+            background-color: #E74C3C;
+            border-radius: 50%;
+        }
+
+        .bottom-section {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .large-databoxes {
+            display: inline-block;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            font-size: 16px;
+            font-weight: 500;
+            color: #495057;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .progress-card {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .manager-info {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="manager-info">
+                <img src="<?php echo $manager_image; ?>" alt="Manager" class="manager-avatar">
+                <div class="manager-details">
+                    <h2><?php echo $manager_name; ?></h2>
+                    <p>Dashboard Overview</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Section -->
+        <div class="content-section">
+            <div class="stats-grid">
+                <!-- Progress Chart Card -->
+                <div class="stat-card progress-card">
+                    <div class="chart-container">
+                        <div class="progress-chart" data-percent="<?php echo $completion_percentage; ?>">
+                            <span class="progress-value"><?php echo $completion_percentage; ?>%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tasks Card -->
+                <div class="stat-card tasks-card">
+                    <div class="menu-icon">
+                        <div class="menu-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                    <div class="task-number"><?php echo $new_tasks; ?></div>
+                    <div class="task-label">New Tasks</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Section -->
+        <div class="bottom-section">
+            <div class="large-databoxes">
+                Large Databoxes
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize Easy Pie Chart
+            $('.progress-chart').easyPieChart({
+                size: 120,
+                barColor: '#E74C3C',
+                trackColor: '#f1f1f1',
+                scaleColor: false,
+                lineWidth: 8,
+                animate: {
+                    duration: 2000,
+                    enabled: true
+                },
+                onStep: function(from, to, percent) {
+                    $(this.el).find('.progress-value').text(Math.round(percent) + '%');
+                }
+            });
+
+            // Add hover effects and animations
+            $('.stat-card').hover(
+                function() {
+                    $(this).addClass('hovered');
+                },
+                function() {
+                    $(this).removeClass('hovered');
+                }
+            );
+
+            // Menu dots click handler
+            $('.menu-dots').click(function() {
+                alert('Menu clicked! You can add dropdown menu functionality here.');
+            });
+
+            // Animate task number on load
+            $({ countNum: 0 }).animate({ countNum: <?php echo $new_tasks; ?> }, {
+                duration: 1500,
+                easing: 'swing',
+                step: function() {
+                    $('.task-number').text(Math.floor(this.countNum));
+                },
+                complete: function() {
+                    $('.task-number').text(<?php echo $new_tasks; ?>);
+                }
+            });
+        });
+
+        // Function to update chart data (can be called from external sources)
+        function updateChart(newPercentage) {
+            $('.progress-chart').data('easyPieChart').update(newPercentage);
+        }
+
+        // Function to update task count
+        function updateTasks(newCount) {
+            $({ countNum: parseInt($('.task-number').text()) }).animate({ countNum: newCount }, {
+                duration: 1000,
+                easing: 'swing',
+                step: function() {
+                    $('.task-number').text(Math.floor(this.countNum));
+                },
+                complete: function() {
+                    $('.task-number').text(newCount);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
